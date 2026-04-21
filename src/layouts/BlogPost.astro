@@ -1,7 +1,6 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import { CATEGORY_LABELS } from '../consts';
-import type { Category } from '../lib/microcms';
 
 interface Props {
   title: string;
@@ -9,65 +8,51 @@ interface Props {
   publishDate: Date;
   updatedDate?: Date;
   heroImage?: string;
-  category?: Category;
-  body: string;
+  category?: string;
 }
 
-const {
-  title,
-  description,
-  publishDate,
-  updatedDate,
-  heroImage,
-  category,
-  body,
-} = Astro.props;
+const { title, description, publishDate, updatedDate, heroImage, category } = Astro.props;
 
 function formatDate(date: Date) {
-  return date.toLocaleDateString('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 ---
 
 <BaseLayout title={title} description={description} heroImage={heroImage} withSidebar={true}>
   <article class="blog-article">
-      {heroImage && (
-        <div class="hero-image">
-          <img src={heroImage} alt={title} width={1020} height={510} />
-        </div>
-      )}
-      <div class="prose-wrapper">
-        <div class="article-header">
-          {category && (
-            <a href={`/category/${category}`} class="category-badge">
-              {CATEGORY_LABELS[category] ?? category}
-            </a>
-          )}
-          <h1 class="article-title">{title}</h1>
-          <div class="article-meta">
-            <time datetime={publishDate.toISOString()}>
-              {formatDate(publishDate)}
-            </time>
-            {updatedDate && (
-              <span class="updated-date">
-                （更新: <time datetime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time>）
-              </span>
-            )}
-          </div>
-        </div>
-
-        <!-- TOC（見出しが3つ以上あるとき自動表示） -->
-        <nav class="toc" id="toc" aria-label="目次" style="display:none">
-          <p class="toc-title">目次</p>
-          <ol class="toc-list" id="toc-list"></ol>
-        </nav>
-
-        <div class="prose" id="article-body" set:html={body} />
+    {heroImage && (
+      <div class="hero-image">
+        <img src={heroImage} alt={title} width={1020} height={510} />
       </div>
-    </article>
+    )}
+    <div class="prose-wrapper">
+      <div class="article-header">
+        {category && (
+          <a href={`/category/${category}`} class="category-badge">
+            {CATEGORY_LABELS[category] ?? category}
+          </a>
+        )}
+        <h1 class="article-title">{title}</h1>
+        <div class="article-meta">
+          <time datetime={publishDate.toISOString()}>{formatDate(publishDate)}</time>
+          {updatedDate && (
+            <span class="updated-date">
+              （更新: <time datetime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time>）
+            </span>
+          )}
+        </div>
+      </div>
+
+      <nav class="toc" id="toc" aria-label="目次" style="display:none">
+        <p class="toc-title">目次</p>
+        <ol class="toc-list" id="toc-list"></ol>
+      </nav>
+
+      <div class="prose" id="article-body">
+        <slot />
+      </div>
+    </div>
+  </article>
 </BaseLayout>
 
 <script>
@@ -103,16 +88,9 @@ function formatDate(date: Date) {
     margin-bottom: 2rem;
   }
 
-  .hero-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+  .hero-image img { width: 100%; height: 100%; object-fit: cover; }
 
-  .prose-wrapper {
-    max-width: 720px;
-    margin: 0 auto;
-  }
+  .prose-wrapper { max-width: 720px; margin: 0 auto; }
 
   .article-header {
     margin-bottom: 2rem;
@@ -136,10 +114,7 @@ function formatDate(date: Date) {
     transition: background 0.15s ease;
   }
 
-  .category-badge:hover {
-    background: rgba(200, 56, 10, 0.12);
-    color: #c8380a;
-  }
+  .category-badge:hover { background: rgba(200, 56, 10, 0.12); }
 
   .article-title {
     font-family: 'Outfit', 'Noto Sans JP', sans-serif;
@@ -151,14 +126,8 @@ function formatDate(date: Date) {
     letter-spacing: -0.02em;
   }
 
-  .article-meta {
-    font-size: 0.8125rem;
-    color: #a09890;
-  }
-
-  .updated-date {
-    margin-left: 0.5rem;
-  }
+  .article-meta { font-size: 0.8125rem; color: #a09890; }
+  .updated-date { margin-left: 0.5rem; }
 
   .prose {
     color: #3a3633;
@@ -186,9 +155,7 @@ function formatDate(date: Date) {
     letter-spacing: -0.01em;
   }
 
-  .prose :global(p) {
-    margin-bottom: 1.375rem;
-  }
+  .prose :global(p) { margin-bottom: 1.375rem; }
 
   .prose :global(a) {
     color: #c8380a;
@@ -203,16 +170,8 @@ function formatDate(date: Date) {
     color: #a82e08;
   }
 
-  .prose :global(img) {
-    border-radius: 6px;
-    max-width: 100%;
-  }
-
-  .prose :global(hr) {
-    border: none;
-    border-top: 1px solid #e5e2dc;
-    margin: 2.5rem 0;
-  }
+  .prose :global(img) { border-radius: 6px; max-width: 100%; }
+  .prose :global(hr) { border: none; border-top: 1px solid #e5e2dc; margin: 2.5rem 0; }
 
   .prose :global(blockquote) {
     border-left: 3px solid #e5e2dc;
@@ -238,14 +197,15 @@ function formatDate(date: Date) {
     margin-bottom: 1.375rem;
   }
 
-  .prose :global(pre code) {
-    background: none;
-    border: none;
-    padding: 0;
-    color: #e8e3dc;
+  .prose :global(pre code) { background: none; border: none; padding: 0; color: #e8e3dc; }
+
+  .prose :global(ul), .prose :global(ol) {
+    padding-left: 1.5rem;
+    margin-bottom: 1.375rem;
   }
 
-  /* ---- TOC ---- */
+  .prose :global(li) { margin-bottom: 0.375rem; }
+
   .toc {
     background: #f8f7f5;
     border: 1px solid #e5e2dc;
@@ -271,21 +231,8 @@ function formatDate(date: Date) {
     gap: 0.3rem;
   }
 
-  .toc-list :global(.toc-item) {
-    font-size: 0.875rem;
-    line-height: 1.4;
-  }
-
-  .toc-list :global(.toc-item--h3) {
-    margin-left: 1rem;
-    font-size: 0.8125rem;
-  }
-
-  .toc-list :global(a) {
-    color: #6b6560;
-    text-decoration: none;
-    transition: color 0.15s ease;
-  }
-
+  .toc-list :global(.toc-item) { font-size: 0.875rem; line-height: 1.4; }
+  .toc-list :global(.toc-item--h3) { margin-left: 1rem; font-size: 0.8125rem; }
+  .toc-list :global(a) { color: #6b6560; text-decoration: none; transition: color 0.15s ease; }
   .toc-list :global(a:hover) { color: #c8380a; }
 </style>

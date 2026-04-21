@@ -1,12 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE_TITLE } from '../consts';
-import { getBlogPosts, resolveDate } from '../lib/microcms';
+import { getCollection } from 'astro:content';
 
-const { contents: posts } = await getBlogPosts({
-  orders: '-publishDate,-publishedAt',
-  limit: 10,
-});
+const allArticles = await getCollection('article', ({ data }) => !data.draft);
+const posts = allArticles
+  .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf())
+  .slice(0, 10);
 
 function formatDate(date: Date) {
   return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -23,23 +23,24 @@ function formatDate(date: Date) {
     {posts.length > 0 ? (
       <ol class="ranking-list">
         {posts.map((post, i) => {
-          const date = resolveDate(post);
           const rank = i + 1;
           return (
             <li class="ranking-item">
               <a href={`/blog/${post.id}/`} class="ranking-link">
                 <span class={`rank-number ${rank <= 3 ? 'rank-top' : ''}`}>{rank}</span>
                 <div class="ranking-image">
-                  {post.heroImage ? (
-                    <img src={post.heroImage.url} alt={post.title} loading="lazy" width="120" height="90" />
+                  {post.data.heroImage ? (
+                    <img src={post.data.heroImage} alt={post.data.title} loading="lazy" width="120" height="90" />
                   ) : (
                     <div class="ranking-placeholder" aria-hidden="true"><span>📦</span></div>
                   )}
                 </div>
                 <div class="ranking-body">
-                  <h2 class="ranking-title">{post.title}</h2>
-                  <p class="ranking-desc">{post.description}</p>
-                  <time class="ranking-date" datetime={date.toISOString()}>{formatDate(date)}</time>
+                  <h2 class="ranking-title">{post.data.title}</h2>
+                  <p class="ranking-desc">{post.data.description}</p>
+                  <time class="ranking-date" datetime={post.data.publishDate.toISOString()}>
+                    {formatDate(post.data.publishDate)}
+                  </time>
                 </div>
               </a>
             </li>
@@ -70,20 +71,9 @@ function formatDate(date: Date) {
     letter-spacing: -0.015em;
   }
 
-  .page-desc {
-    font-size: 0.875rem;
-    color: #6b6560;
-    margin: 0.5rem 0 0 1.125rem;
-  }
+  .page-desc { font-size: 0.875rem; color: #6b6560; margin: 0.5rem 0 0 1.125rem; }
 
-  .ranking-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
+  .ranking-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
 
   .ranking-item {
     background: #ffffff;
@@ -93,10 +83,7 @@ function formatDate(date: Date) {
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
   }
 
-  .ranking-item:hover {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border-color: #ccc9c3;
-  }
+  .ranking-item:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-color: #ccc9c3; }
 
   .ranking-link {
     display: flex;
@@ -113,13 +100,10 @@ function formatDate(date: Date) {
     color: #a09890;
     min-width: 2rem;
     text-align: center;
-    line-height: 1;
     flex-shrink: 0;
   }
 
-  .rank-number.rank-top {
-    color: #c8380a;
-  }
+  .rank-number.rank-top { color: #c8380a; }
 
   .ranking-image {
     width: 80px;
@@ -130,11 +114,7 @@ function formatDate(date: Date) {
     background: #f0ede9;
   }
 
-  .ranking-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+  .ranking-image img { width: 100%; height: 100%; object-fit: cover; }
 
   .ranking-placeholder {
     width: 100%; height: 100%;
@@ -142,10 +122,7 @@ function formatDate(date: Date) {
     font-size: 1.5rem; opacity: 0.2;
   }
 
-  .ranking-body {
-    flex: 1;
-    min-width: 0;
-  }
+  .ranking-body { flex: 1; min-width: 0; }
 
   .ranking-title {
     font-family: 'Outfit', 'Noto Sans JP', sans-serif;
@@ -171,11 +148,5 @@ function formatDate(date: Date) {
   }
 
   .ranking-date { font-size: 0.75rem; color: #a09890; }
-
-  .empty-message {
-    color: #a09890;
-    text-align: center;
-    padding: 4rem 0;
-    font-size: 0.9375rem;
-  }
+  .empty-message { color: #a09890; text-align: center; padding: 4rem 0; font-size: 0.9375rem; }
 </style>
